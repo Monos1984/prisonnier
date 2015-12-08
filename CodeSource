@@ -1,0 +1,374 @@
+'========================================= 
+'= Prisonnier                            = 
+'========================================= 
+'----------------------------------------- 
+' Auteur : Capitaine Caverne   
+' Programmation : Jean Monos 
+'    
+' Studio : Offgame   
+'  
+'----------------------------------------- 
+' Version 1,0,0  
+' Build 3
+' Mise à jour : 5/12/15  
+'----------------------------------------- 
+
+Rem =========================
+Rem = * Initiation du jeu * =
+Rem =========================
+Screen Open 0,176,176,32,Lowres
+Screen Display 0,200,80,,
+
+Screen Open 1,320,256,32,Lowres
+Dim AREA(11,11)
+Curs Off : Flash Off : Paper 0
+Colour Back $0
+
+Gosub DEBUT
+
+Do 
+   Gosub INIT
+   Gosub MNU
+   Gosub GAME
+   'Fin de partie 
+   Locate 0,15
+   If G=1 and IDG=0 Then Paper 0 : Centre "Player 2 Win"
+   If G=1 and IDG=1 Then Paper 0 : Centre "I Win"
+   If G=2 Then Paper 0 : Centre "Player 1 Win"
+   Gosub PSOURIE
+
+Loop 
+End 
+
+Rem ====================== 
+Rem =* Melodie du début *= 
+Rem ====================== 
+
+ZIC:
+   Play 1,37,10
+   Play 1,37,10
+   Play 1,36,10
+   Play 1,37,10
+   Play 1,38,10
+   Play 1,40,10
+   Play 1,38,10
+   Play 1,37,10
+   Play 1,38,10
+   Play 1,35,10
+   Play 1,37,10
+   Play 1,37,10
+   Play 1,38,10
+   Play 1,37,10
+   Play 1,37,10
+   Play 1,37,10
+   Play 1,36,10
+   Play 1,37,10
+Play 1,32,5
+Play 1,33,5
+Play 1,37,10
+Play 1,32,5
+Play 1,32,5
+Play 1,37,10
+Play 1,37,10
+Play 1,38,20
+
+Wait 50
+Return 
+
+
+Rem ============================== 
+Rem = * Initiation des données * = 
+Rem ============================== 
+INIT:
+XJ1=5 : YJ1=1
+XJ2=5 : YJ2=9
+CASEMAX=10
+G=0
+GAMEOVER=0
+
+Return 
+
+Rem =============
+Rem = * Début * =
+Rem =============
+DEBUT:
+Paper 0
+Cls 
+Wait 50
+Set Talk 0,0,80,200
+Locate 0,14 : Centre "PRISONNIER"
+Locate 1,29 : Print "Offgame 2015 "
+Locate 34,29 : Print "1,0,0"
+Locate 0,25 : Centre " Monos and Capitaine Caverne Game's"
+Gosub ZIC
+
+Return 
+
+Rem ============ 
+Rem = * Menu * = 
+Rem ============ 
+MNU:
+Screen To Front 1 : Screen 1 : Paper 0 : Cls 
+Locate 0,10 : Centre "=>Player VS Amiga<="
+Locate 0,14 : Centre "=>Player VS Player<="
+Locate 0,18 : Centre "=>Exit<="
+Wait(10) : MX=0 : MY=0
+Do 
+   Gosub PSOURIE
+   If MY=9 Then Say "Good By" : End 
+   If MY=7 Then Say "Play with your Frien" : IDG=0 : Return 
+   If MY=5 Then Say "Ok, Play with Me" : IDG=1 : Return 
+Loop 
+
+Return 
+
+Rem =====================
+Rem = * Boucle du jeu * =
+Rem =====================
+GAME:
+
+Screen To Front 0
+Screen 0
+Curs Off : Flash Off 
+Cls 
+Get Bob Palette 
+Gosub PLATEAU
+AREA(5,1)=1
+AREA(5,9)=1
+X Mouse=250 : Y Mouse=100
+
+' Déploiment Case au début 
+U=0 : V=Rnd(20)+10
+For U=0 To V
+   Gosub PAM
+Next 
+Gosub POSJ
+
+Wait(10)
+
+Do 
+   Gosub TESTJ1 : If GAMEOVER=1 Then G=1 : Return 
+   Wait(1)
+   
+   Say "Player Blue",1
+   Gosub DEPJ1
+   Wait(5)
+   Say "Creating a Wall",1
+   Gosub MUR
+   Wait(10)
+   
+   Gosub TESTJ2 : If GAMEOVER=1 Then G=2 : Return 
+   Say "Player Red",1
+   If IDG=0 Then Gosub DEPJ2
+   If IDG=1 Then Gosub DEPIA
+   Wait(5)
+   If IDG=0 Then Say "Creating a Wall",1
+   If IDG=0 Then Gosub MUR
+   Wait(10)
+   
+   Say "News Waaalls"
+   U=0 : W=Rnd(5)+2
+   For U=0 To W
+      Gosub PAM
+   Next 
+   Wait(5)
+Loop 
+
+Return 
+
+Rem ================================== 
+Rem = * Création du plateau de jeu * = 
+Rem ================================== 
+PLATEAU:
+
+X=0 : Y=0
+For Y=0 To 10
+   For X=0 To 10
+      Paste Icon X*16,Y*16,1
+      AREA(X,Y)=0
+   Next 
+   X=0
+Next 
+
+X=0
+For X=0 To 10
+   Paste Icon X*16,0,2
+   Paste Icon X*16,160,2
+   AREA(X,0)=1
+   AREA(X,10)=1
+Next 
+
+X=1
+For X=1 To 9
+   Paste Icon 0,X*16,2
+   Paste Icon 160,X*16,2
+   AREA(0,X)=1
+   AREA(10,X)=1
+Next 
+
+Return 
+
+Rem ============================================ 
+Rem = * Position de la sourie aprés un click * = 
+Rem ============================================ 
+PSOURIE:
+
+While Mouse Key=0
+Wend 
+MX=X Screen(X Mouse)/16
+MY=Y Screen(Y Mouse)/16
+
+Return 
+
+Rem ============================ 
+Rem = * Position des joueurs * = 
+Rem ============================ 
+POSJ:
+
+Bob 1,XJ1*16,YJ1*16,1
+Bob 2,XJ2*16,YJ2*16,2
+
+Return 
+
+Rem =========================  
+Rem = * Déplacement du J1 * =  
+Rem =========================  
+DEPJ1:
+
+TDEP=1
+While TDEP=1
+   Gosub PSOURIE
+   If MX<0 or MY<0 or MX>CASEMAX or MY>CASEMAX Then Goto JUMP
+   If MX=XJ1+1 and MY=YJ1 and AREA(MX,MY)=0 Then AREA(XJ1,YJ1)=0 : Inc XJ1 : TDEP=0 : Rem Droite 
+   If MX=XJ1-1 and MY=YJ1 and AREA(MX,MY)=0 Then AREA(XJ1,YJ1)=0 : Dec XJ1 : TDEP=0 : Rem Gauche   
+   If MX=XJ1 and MY=YJ1+1 and AREA(MX,MY)=0 Then AREA(XJ1,YJ1)=0 : Inc YJ1 : TDEP=0 : Rem Bas
+   If MX=XJ1 and MY=YJ1-1 and AREA(MX,MY)=0 Then AREA(XJ1,YJ1)=0 : Dec YJ1 : TDEP=0 : Rem Haut 
+   
+   If MX=XJ1+1 and MY=YJ1+1 and AREA(MX,MY)=0 Then AREA(XJ1,YJ1)=0 : Inc XJ1 : Inc YJ1 : TDEP=0 : Rem BAS/DROITE 
+   If MX=XJ1+1 and MY=YJ1-1 and AREA(MX,MY)=0 Then AREA(XJ1,YJ1)=0 : Inc XJ1 : Dec YJ1 : TDEP=0 : Rem Haut/Droite
+   If MX=XJ1-1 and MY=YJ1+1 and AREA(MX,MY)=0 Then AREA(XJ1,YJ1)=0 : Dec XJ1 : Inc YJ1 : TDEP=0 : Rem Gauche/BAS 
+   If MX=XJ1-1 and MY=YJ1-1 and AREA(MX,MY)=0 Then AREA(XJ1,YJ1)=0 : Dec XJ1 : Dec YJ1 : TDEP=0 : Rem Gauche/Haut
+   JUMP:
+Wend 
+AREA(XJ1,YJ1)=1
+Gosub POSJ
+
+Return 
+
+Rem =========================  
+Rem = * Déplacement du J2 * =  
+Rem =========================  
+DEPJ2:
+
+TDEP=1
+While TDEP=1
+   Gosub PSOURIE
+   If MX<0 or MY<0 or MX>CASEMAX or MY>CASEMAX Then Goto JUMP3
+   If MX=XJ2+1 and MY=YJ2 and AREA(MX,MY)=0 Then AREA(XJ2,YJ2)=0 : Inc XJ2 : TDEP=0 : Rem Droite 
+   If MX=XJ2-1 and MY=YJ2 and AREA(MX,MY)=0 Then AREA(XJ2,YJ2)=0 : Dec XJ2 : TDEP=0 : Rem Gauche   
+   If MX=XJ2 and MY=YJ2+1 and AREA(MX,MY)=0 Then AREA(XJ2,YJ2)=0 : Inc YJ2 : TDEP=0 : Rem Bas
+   If MX=XJ2 and MY=YJ2-1 and AREA(MX,MY)=0 Then AREA(XJ2,YJ2)=0 : Dec YJ2 : TDEP=0 : Rem Haut 
+   
+   If MX=XJ2+1 and MY=YJ2+1 and AREA(MX,MY)=0 Then AREA(XJ2,YJ2)=0 : Inc XJ2 : Inc YJ2 : TDEP=0 : Rem BAS/DROITE 
+   If MX=XJ2+1 and MY=YJ2-1 and AREA(MX,MY)=0 Then AREA(XJ2,YJ2)=0 : Inc XJ2 : Dec YJ2 : TDEP=0 : Rem Haut/Droite
+   If MX=XJ2-1 and MY=YJ2+1 and AREA(MX,MY)=0 Then AREA(XJ2,YJ2)=0 : Dec XJ2 : Inc YJ2 : TDEP=0 : Rem Gauche/BAS 
+   If MX=XJ2-1 and MY=YJ2-1 and AREA(MX,MY)=0 Then AREA(XJ2,YJ2)=0 : Dec XJ2 : Dec YJ2 : TDEP=0 : Rem Gauche/Haut
+   JUMP3:
+Wend 
+AREA(XJ2,YJ2)=1
+Gosub POSJ
+
+Return 
+
+Rem ==================== 
+Rem = * Tour de L'ia * = 
+Rem ==================== 
+DEPIA:
+
+Say "I  Move, Wait"
+Wait 10
+X=Rnd(8)
+
+Do 
+   If X=0 and AREA(XJ2+1,YJ2)=0 Then AREA(XJ2,YJ2)=0 : Inc XJ2 : X=10
+   If X=1 and AREA(XJ2-1,YJ2)=0 Then AREA(XJ2,YJ2)=0 : Dec XJ2 : X=10
+   If X=2 and AREA(XJ2,YJ2+1)=0 Then AREA(XJ2,YJ2)=0 : Inc YJ2 : X=10
+   If X=3 and AREA(XJ2,YJ2-1)=0 Then AREA(XJ2,YJ2)=0 : Dec YJ2 : X=10
+   
+   If X=4 and AREA(XJ2+1,YJ2+1)=0 Then AREA(XJ2,YJ2)=0 : Inc XJ2 : Inc YJ2 : X=10
+   If X=5 and AREA(XJ2+1,YJ2-1)=0 Then AREA(XJ2,YJ2)=0 : Inc XJ2 : Dec YJ2 : X=10
+   If X=6 and AREA(XJ2-1,YJ2+1)=0 Then AREA(XJ2,YJ2)=0 : Dec XJ2 : Inc YJ2 : X=10
+   If X=7 and AREA(XJ2-1,YJ2-1)=0 Then AREA(XJ2,YJ2)=0 : Dec XJ2 : Dec YJ2 : X=10
+   
+   If X=10 Then Exit 
+   Inc X
+   If X=>8 Then X=0
+Loop 
+AREA(XJ2,YJ2)=1
+Gosub POSJ
+Wait 30
+
+' Pose du mur de l'IA
+X=Rnd(7)
+Do 
+   If X=0 and AREA(XJ1+1,YJ1)=0 Then AREA(XJ1+1,YJ1)=1 : Paste Icon(XJ1+1)*16,YJ1*16,2 : Exit 
+   If X=1 and AREA(XJ1-1,YJ1)=0 Then AREA(XJ1-1,YJ1)=1 : Paste Icon(XJ1-1)*16,YJ1*16,2 : Exit 
+   If X=2 and AREA(XJ1,YJ1+1)=0 Then AREA(XJ1,YJ1+1)=1 : Paste Icon XJ1*16,(YJ1+1)*16,2 : Exit 
+   If X=3 and AREA(XJ1,YJ1-1)=0 Then AREA(XJ1,YJ1-1)=1 : Paste Icon XJ1*16,(YJ1-1)*16,2 : Exit 
+   
+   If X=4 and AREA(XJ1-1,YJ1-1)=0 Then AREA(XJ1-1,YJ1-1)=1 : Paste Icon(XJ1-1)*16,(YJ1-1)*16,2 : Exit 
+   If X=5 and AREA(XJ1+1,YJ1-1)=0 Then AREA(XJ1+1,YJ1-1)=1 : Paste Icon(XJ1+1)*16,(YJ1-1)*16,2 : Exit 
+   If X=6 and AREA(XJ1-1,YJ1+1)=0 Then AREA(XJ1-1,YJ1+1)=1 : Paste Icon(XJ1-1)*16,(YJ1+1)*16,2 : Exit 
+   If X=7 and AREA(XJ1+1,YJ1+1)=0 Then AREA(XJ1+1,YJ1+1)=1 : Paste Icon(XJ1+1)*16,(YJ1+1)*16,2 : Exit 
+   Inc X
+   If X=>8 Then X=0
+Loop 
+Boom 
+Wait 30
+
+Return 
+
+Rem =====================
+Rem = * Pose d'un mur * =
+Rem =====================
+MUR:
+PMUR=1
+While PMUR=1
+   Gosub PSOURIE
+   If MX<0 or MY<0 or MX>CASEMAX or MY>CASEMAX Then Goto JUMP2
+   If AREA(MX,MY)=0 Then Paste Icon MX*16,MY*16,2 : AREA(MX,MY)=1 : Boom : PMUR=0
+   JUMP2:
+Wend 
+Return 
+
+Rem ============================== 
+Rem = * Teste si J1 est bloqué * = 
+Rem ============================== 
+TESTJ1:
+
+BLOCAGE=AREA(XJ1-1,YJ1)+AREA(XJ1+1,YJ1)+AREA(XJ1,YJ1+1)+AREA(XJ1,YJ1-1)+AREA(XJ1+1,YJ1+1)+AREA(XJ1+1,YJ1-1)+AREA(XJ1-1,YJ1+1)+AREA(XJ1-1,YJ1-1)
+If BLOCAGE=8 Then GAMEOVER=1
+
+Return 
+
+Rem ============================== 
+Rem = * Teste si J2 est bloqué * = 
+Rem ============================== 
+TESTJ2:
+
+BLOCAGE=AREA(XJ2-1,YJ2)+AREA(XJ2+1,YJ2)+AREA(XJ2,YJ2+1)+AREA(XJ2,YJ2-1)+AREA(XJ2+1,YJ2+1)+AREA(XJ2+1,YJ2-1)+AREA(XJ2-1,YJ2+1)+AREA(XJ2-1,YJ2-1)
+If BLOCAGE=8 Then GAMEOVER=1
+
+Return 
+
+Rem ===============================
+Rem = * Pose aléatoire d'un mur * =
+Rem ===============================
+PAM:
+
+XRM=Rnd(11)
+YRM=Rnd(11)
+TEOK=AREA(XRM,YRM)
+If TEOK=0 Then Paste Icon XRM*16,YRM*16,2 : AREA(XRM,YRM)=1 : Boom : Wait 10
+
+Return 
